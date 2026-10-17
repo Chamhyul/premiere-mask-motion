@@ -1,7 +1,2 @@
 .DS_Store
-node_modules/
 dist/
-*.tga
-tracking.json
-last-tracking.json
-mask-motion-diagnostic.json
