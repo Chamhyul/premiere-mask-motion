@@ -42,6 +42,8 @@ def build(stage, output, version, platform, arch):
     if platform == 'windows':
         if sys.platform != 'win32' or arch != 'x64':
             raise RuntimeError('Build the Windows installer on Windows x64')
+        if not (stage/'MaskTrackerRegister.exe').is_file():
+            raise ValueError('Windows registration helper is missing')
         installer = output/('Mask-Tracker-Windows-x64-'+version+'-Setup.exe')
         compiler = windows_compiler()
         subprocess.run([compiler, '/DStageDir='+str(stage), '/DOutputDir='+str(output),
@@ -58,9 +60,13 @@ def build(stage, output, version, platform, arch):
             destination = payload/native_relative
             destination.parent.mkdir(parents=True)
             shutil.copytree(native, destination, symlinks=True)
+            helper = stage/'MaskTrackerRegister'
+            if not helper.is_file():
+                raise ValueError('macOS registration helper is missing')
             ccx_destination = payload/'Library/Application Support/Mask Tracker/Installer/Mask-Tracker.ccx'
             ccx_destination.parent.mkdir(parents=True)
             shutil.copy2(ccx, ccx_destination)
+            shutil.copy2(helper, ccx_destination.parent/'MaskTrackerRegister')
             # Root-owned payload must be readable/executable by the Adobe user.
             for path in payload.rglob('*'):
                 if not path.is_symlink():
@@ -84,7 +90,7 @@ def build(stage, output, version, platform, arch):
             conclusion = resources/'conclusion.html'
             conclusion.write_text('<html><meta charset="utf-8"><body><h2>Mask Tracker</h2>'
                 '<p>네이티브 모듈과 CCX를 설치했습니다.</p>'
-                '<p>Premiere의 환경 설정 → 컨트롤 표면 → 추가에서 Mask Tracker를 선택하세요. 처음 한 번만 설정하면 됩니다.</p></body></html>')
+                '<p>기존 컨트롤 표면 설정을 유지하고 Mask Tracker를 자동 등록했습니다. Premiere를 실행해 사용하세요.</p></body></html>')
             distribution = temp/'Distribution.xml'
             distribution.write_text('<?xml version="1.0" encoding="utf-8"?>\n<installer-gui-script minSpecVersion="2">'
                 '<title>Mask Tracker</title><options customize="never" require-scripts="true" hostArchitectures="'+('arm64' if arch == 'arm64' else 'x86_64')+'"/>'

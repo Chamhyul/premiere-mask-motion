@@ -25,6 +25,16 @@ subprocess.run(common + ['/LD', str(root/'windows/MaskTrackerClipboard.cpp'),
                 '/IMPLIB:'+str(output/'MaskTrackerClipboard.lib'),
                 'user32.lib', 'gdi32.lib', 'ole32.lib', 'shell32.lib', 'advapi32.lib', 'uuid.lib'],
                cwd=output, check=True)
+# A separate EXE edits only the original user's Control Surface preferences.
+subprocess.run(common + [str(root/'windows/MaskTrackerRegister.cpp'),
+                '/Fo'+str(output/'MaskTrackerRegister.obj'), '/Fe'+str(output/'MaskTrackerRegister.exe'),
+                '/link', 'ole32.lib', 'oleaut32.lib', 'shell32.lib', 'advapi32.lib', 'uuid.lib'],
+               cwd=output, check=True)
+(output/'MaskTrackerRegister.obj').unlink(missing_ok=True)
+# Fixture tests never touch Adobe preferences and do not require Premiere.
+import sys
+env = dict(os.environ, MASK_TRACKER_REGISTRATION_HELPER=str(output/'MaskTrackerRegister.exe'))
+subprocess.run([sys.executable, str(root/'test-registration-windows.py')], env=env, check=True)
 # Import libraries and object files are intermediate build outputs, not assets.
 for suffix in ['obj', 'lib', 'exp']:
     (output/('MaskTrackerClipboard.'+suffix)).unlink(missing_ok=True)

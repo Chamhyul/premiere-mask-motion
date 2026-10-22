@@ -34,8 +34,9 @@ SetupLogging=yes
 Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"
 [Messages]
 FinishedHeadingLabel=Mask Tracker 설치 완료
-FinishedLabel=네이티브 모듈과 CCX를 설치했습니다.%n%nPremiere의 환경 설정 → 컨트롤 표면 → 추가에서 Mask Tracker를 선택하세요. 처음 한 번만 설정하면 됩니다.
+FinishedLabel=네이티브 모듈과 CCX를 설치하고 Mask Tracker를 자동 등록했습니다.%n%nPremiere를 실행해 사용하세요.
 [Files]
+Source: "{#StageDir}\MaskTrackerRegister.exe"; DestDir: "{app}\Installer"; Flags: ignoreversion
 Source: "{#StageDir}\MaskTrackerClipboard.acsrf"; DestDir: "{commonpf64}\Adobe\Common\Plug-ins\ControlSurface"; Flags: ignoreversion
 Source: "{#StageDir}\Mask-Tracker-{#Version}.ccx"; DestDir: "{app}\Installer"; DestName: "Mask-Tracker.ccx"; Flags: ignoreversion
 [Code]
@@ -74,6 +75,23 @@ var
   Started: Boolean;
 begin
   if CurStep = ssPostInstall then begin
+    WizardForm.StatusLabel.Caption := '컨트롤 표면 자동 등록 중...';
+    Code := -1;
+    try
+      Started := ExecAsOriginalUser(ExpandConstant('{app}\Installer\MaskTrackerRegister.exe'),
+        '', '', SW_HIDE, ewWaitUntilTerminated, Code);
+      if not Started or (Code <> 0) then begin
+        CcxFailure := Format('컨트롤 표면 자동 등록 실패 (코드 %d). Premiere를 한 번 실행한 뒤 종료하고 설치 파일을 일반 실행으로 다시 여세요. 관리자 권한으로 실행하지 마세요. 기존 설정은 백업 파일로 보존됩니다.', [Code]);
+        Log(CcxFailure);
+        SuppressibleMsgBox(CcxFailure, mbError, MB_OK, IDOK);
+        Exit;
+      end;
+    except
+      CcxFailure := '컨트롤 표면 자동 등록 실패: ' + GetExceptionMessage;
+      Log(CcxFailure);
+      SuppressibleMsgBox(CcxFailure, mbError, MB_OK, IDOK);
+      Exit;
+    end;
     WizardForm.StatusLabel.Caption := 'Adobe CCX 설치 중...';
     { Use the original desktop user's Adobe account, not an elevated admin's. }
     Code := -1;

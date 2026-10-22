@@ -9,9 +9,12 @@ user=$(/usr/bin/id -nu "$uid")
 agent='/Library/Application Support/Adobe/Adobe Desktop Common/RemoteComponents/UPI/UnifiedPluginInstallerAgent/UnifiedPluginInstallerAgent.app/Contents/MacOS/UnifiedPluginInstallerAgent'
 ccx='/Library/Application Support/Mask Tracker/Installer/Mask-Tracker.ccx'
 [ -x "$agent" ] && [ -f "$ccx" ] || fail 'CCX 설치에 필요한 파일이 없습니다. 다시 설치하세요.'
+helper='/Library/Application Support/Mask Tracker/Installer/MaskTrackerRegister'
+[ -x "$helper" ] || fail '자동 등록 도구가 없습니다. 다시 설치하세요.'
+/bin/launchctl asuser "$uid" /usr/bin/sudo -H -u "$user" "$helper" || fail '컨트롤 표면 자동 등록에 실패했습니다. 기존 설정은 백업되며 설치를 다시 시도할 수 있습니다.'
 # UXP belongs to the logged-in Adobe user, never the Installer's root account.
 if /bin/launchctl asuser "$uid" /usr/bin/sudo -H -u "$user" "$agent" --install "$ccx"; then
-    echo 'Mask Tracker: CCX 설치 완료. Premiere의 컨트롤 표면에 Mask Tracker를 추가하세요.'
+    echo 'Mask Tracker: CCX 설치 및 컨트롤 표면 자동 등록 완료.'
 else
     result=$?
     fail "Adobe CCX 설치 실패 (코드 $result). Creative Cloud 로그인 상태와 권한을 확인하고 설치 파일을 다시 실행하세요."

@@ -5,9 +5,10 @@ fail() { echo "Mask Tracker: $*" >&2; exit 1; }
 [ "$(/usr/bin/id -u)" -eq 0 ] || fail '관리자 권한이 필요합니다.'
 uid=$(/usr/bin/stat -f %u /dev/console)
 [ "$uid" -ge 500 ] || fail '설치할 사용자의 macOS 화면에 로그인한 뒤 다시 실행하세요.'
-if /usr/bin/pgrep -f '/Adobe Premiere Pro[^/]*/Adobe Premiere Pro[^/]*\.app/Contents/MacOS/' >/dev/null; then
-    fail 'Premiere를 종료한 뒤 다시 설치하세요.'
-fi
+process_status=0
+/usr/bin/pgrep -f '^.*/Adobe Premiere Pro[^/]*\.app/Contents/MacOS/Adobe Premiere Pro[^/]*( |$)' >/dev/null || process_status=$?
+[ "$process_status" -ne 0 ] || fail 'Premiere를 종료한 뒤 다시 설치하세요.'
+[ "$process_status" -eq 1 ] || fail 'Premiere 실행 상태를 확인하지 못했습니다.'
 agent='/Library/Application Support/Adobe/Adobe Desktop Common/RemoteComponents/UPI/UnifiedPluginInstallerAgent/UnifiedPluginInstallerAgent.app/Contents/MacOS/UnifiedPluginInstallerAgent'
 [ -x "$agent" ] || fail 'Creative Cloud Desktop을 설치하고 로그인한 뒤 다시 실행하세요.'
 if [ '@ARCH@' = arm64 ]; then

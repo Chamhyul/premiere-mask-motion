@@ -20,10 +20,10 @@ namespace {
 namespace fs=std::filesystem;
 using namespace masktracker;
 HINSTANCE instance=nullptr;HWND window=nullptr;fs::path directory;
-SPBasicSuite* basic=nullptr;SPSuitesSuite* suites=nullptr;SPSuiteListRef suiteList=nullptr;
-ADOBESDK_StringSuite1* strings=nullptr;
-ADOBESDK_ControlSurfaceHostSuite1* host=nullptr;
-ADOBESDK_ControlSurfaceHostCommandSuite1* commands=nullptr;
+SPBasicSuite* basic=nullptr;const SPSuitesSuite* suites=nullptr;SPSuiteListRef suiteList=nullptr;
+const ADOBESDK_StringSuite1* strings=nullptr;
+const ADOBESDK_ControlSurfaceHostSuite1* host=nullptr;
+const ADOBESDK_ControlSurfaceHostCommandSuite1* commands=nullptr;
 ADOBESDK_ControlSurfaceHostCommandRef commandRef=nullptr;
 ADOBESDK_String copyID{},copyContext{};bool copyAvailable=false;
 std::string session;int token=0;double lastReady=0;
@@ -135,6 +135,9 @@ void poll(){
     DWORD attr=GetFileAttributesW(entry.path().c_str());if(attr==INVALID_FILE_ATTRIBUTES||(attr&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT)))continue;
     if(entry.file_size()>65536)continue;
     std::ifstream input(entry.path(),std::ios::binary);std::string data(65537,'\0');input.read(data.data(),std::streamsize(data.size()));data.resize(size_t(input.gcount()));if(data.size()>65536||input.bad())continue;
+    // Windows does not allow deletion while this stream holds the file open.
+    // Release it before claiming the request by removing its file.
+    input.close();
     Request r;try{r=masktracker::request(data,name,session,now());}catch(...){continue;}
     std::error_code ec;fs::remove(entry.path(),ec);if(ec)continue;
     job=std::make_unique<Job>();job->request=std::move(r);advanceJob();break;

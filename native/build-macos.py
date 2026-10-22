@@ -28,4 +28,10 @@ subprocess.run(['clang++', '-std=c++17', '-Wno-pragma-pack', '-fobjc-arc', '-fbl
                 '-o', str(contents/'MacOS/MaskTrackerClipboard')], check=True)
 identity = os.environ.get('MASK_TRACKER_CODE_SIGN_IDENTITY', '-')
 subprocess.run(['codesign', '--force', '--sign', identity, *(['--timestamp', '--options', 'runtime'] if identity != '-' else []), str(bundle)], check=True)
+helper = args.output.resolve() / 'MaskTrackerRegister'
+subprocess.run(['clang++', '-std=c++17', '-fobjc-arc',
+                *(['-arch', args.arch] if args.arch else []),
+                '-framework', 'AppKit', str(root/'MaskTrackerRegister.mm'), '-o', str(helper)], check=True)
+subprocess.run(['codesign', '--force', '--sign', identity, *(['--timestamp', '--options', 'runtime'] if identity != '-' else []), str(helper)], check=True)
 print(bundle)
+print(helper)

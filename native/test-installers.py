@@ -21,6 +21,7 @@ class InstallerTests(unittest.TestCase):
         self.root = pathlib.Path(self.temp.name)
         self.env = dict(os.environ, TEST_ROOT=str(self.root))
         self.agent = self.tool('agent', '#!/usr/bin/env python3\nimport os,sys,json,pathlib\npathlib.Path(os.environ["TEST_ROOT"],"agent-args.json").write_text(json.dumps(sys.argv[1:]))\nsys.exit(int(os.environ.get("AGENT_EXIT","0")))\n')
+        self.helper = self.tool('register-helper', '#!/bin/sh\nexit "${REGISTER_EXIT:-0}"\n')
         self.ccx = self.root/'payload with spaces.ccx'
         self.ccx.write_bytes(b'test-only')
         self.replacements = {
@@ -32,6 +33,7 @@ class InstallerTests(unittest.TestCase):
             '/usr/bin/sudo': self.tool('sudo', '#!/bin/sh\n[ "$1" = -H ] && [ "$2" = -u ] && [ "$3" = testuser ] || exit 72\nshift 3\nexec "$@"\n'),
             '/Library/Application Support/Adobe/Adobe Desktop Common/RemoteComponents/UPI/UnifiedPluginInstallerAgent/UnifiedPluginInstallerAgent.app/Contents/MacOS/UnifiedPluginInstallerAgent': self.agent,
             '/Library/Application Support/Mask Tracker/Installer/Mask-Tracker.ccx': self.ccx,
+            '/Library/Application Support/Mask Tracker/Installer/MaskTrackerRegister': self.helper,
         }
 
     def tool(self, name, source):
@@ -53,7 +55,7 @@ class InstallerTests(unittest.TestCase):
 
     @unittest.skipIf(os.name == 'nt', 'macOS shell control flow')
     def test_preinstall_rejects_running_premiere_missing_agent_wrong_arch_and_volume(self):
-        for options in [dict(PREMIERE_RUNNING='0'), dict(ARM64='0'), dict(TEST_UID='501'), dict(CONSOLE_UID='0'), dict(volume='/Volumes/Other')]:
+        for options in [dict(PREMIERE_RUNNING='0'), dict(PREMIERE_RUNNING='3'), dict(ARM64='0'), dict(TEST_UID='501'), dict(CONSOLE_UID='0'), dict(volume='/Volumes/Other')]:
             with self.subTest(options=options):
                 self.assertNotEqual(self.script('preinstall', **options).returncode, 0)
         self.agent.unlink()
@@ -64,16 +66,22 @@ class InstallerTests(unittest.TestCase):
         result = self.script('postinstall')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(json.loads((self.root/'agent-args.json').read_text()), ['--install', str(self.ccx)])
-        self.assertIn('CCX 설치 완료', result.stdout)
+        self.assertIn('CCX 설치 및 컨트롤 표면 자동 등록 완료', result.stdout)
 
     @unittest.skipIf(os.name == 'nt', 'macOS shell control flow')
     def test_postinstall_propagates_adobe_failure_instead_of_success(self):
         result = self.script('postinstall', AGENT_EXIT='87')
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('코드 87', result.stderr)
-        self.assertNotIn('CCX 설치 완료', result.stdout)
+        self.assertNotIn('자동 등록 완료', result.stdout)
         self.ccx.unlink()
         self.assertNotEqual(self.script('postinstall').returncode, 0)
+
+    @unittest.skipIf(os.name == 'nt', 'macOS shell control flow')
+    def test_registration_failure_prevents_ccx_install(self):
+        result = self.script('postinstall', REGISTER_EXIT='1')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse((self.root/'agent-args.json').exists())
 
     def test_builder_rejects_incomplete_assets_and_invalid_version(self):
         with self.assertRaises(ValueError):
@@ -81,11 +89,23 @@ class InstallerTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             installer.build(self.root, self.root/'out', '../bad', 'macos', 'arm64')
 
+    def test_windows_installer_requires_registration_helper(self):
+        stage = self.root/'stage'
+        stage.mkdir()
+        (stage/'Mask-Tracker-1.0.0.ccx').write_bytes(b'test-only')
+        (stage/'MaskTrackerClipboard.acsrf').write_bytes(b'test-only')
+        with mock.patch.object(installer.sys, 'platform', 'win32'):
+            with mock.patch.object(installer.subprocess, 'run') as run:
+                with self.assertRaisesRegex(ValueError, 'registration helper'):
+                    installer.build(stage, self.root/'out', '1.0.0', 'windows', 'x64')
+                run.assert_not_called()
+
     def test_windows_compiler_failure_propagates_without_reporting_an_installer(self):
         stage = self.root/'stage'
         stage.mkdir()
         (stage/'Mask-Tracker-0.4.0-beta.1.ccx').write_bytes(b'test-only')
         (stage/'MaskTrackerClipboard.acsrf').write_bytes(b'test-only')
+        (stage/'MaskTrackerRegister.exe').write_bytes(b'test-only')
         with mock.patch.object(installer.sys, 'platform', 'win32'), mock.patch.object(installer, 'windows_compiler', return_value='ISCC.exe'):
             with mock.patch.object(installer.subprocess, 'run', side_effect=subprocess.CalledProcessError(2, 'ISCC.exe')):
                 with self.assertRaises(subprocess.CalledProcessError):
