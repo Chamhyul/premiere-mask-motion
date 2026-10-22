@@ -31,4 +31,4 @@ macOS 자동 등록 검증은 `MASK_TRACKER_REGISTRATION_HELPER=/path/to/MaskTra
 
 Windows 자동 등록은 `windows/MaskTrackerRegister.cpp`를 별도 EXE로 빌드해 `ExecAsOriginalUser`로 실행합니다. 현재 macOS에서 확인한 `prop.map version="4"` 구조를 엄격하게 검사하고, 다른 형식은 변경하지 않습니다. 기존 파일은 백업 후 `ReplaceFileW`로 교체하며 기존 ACL을 유지합니다. 재실행해도 활성 항목을 중복 추가하지 않습니다. 등록 실패 시 CCX 설치로 진행하지 않고 설치 미완료로 표시합니다.
 
-`build-windows.py`는 등록 도구 빌드 후 임시 파일에서 기존 장치·개별 설정 보존, 백업, 재실행, 잘못된 XML·버전 거부, 경로 대소문자 및 정션 거부 검사를 실행합니다. 실제 환경설정에는 접근하지 않습니다. **Windows에서의 컴파일, 실제 Premiere 설정 형식 및 재실행 후 자동 연결은 아직 검증하지 않았습니다.** Windows 검증 시 기존 설정 파일과 백업을 비교하고, 수동 추가 없이 패널에서 마스크 목록을 읽을 수 있는지 확인해야 합니다.
+`build-windows.py`는 등록 도구 빌드 후 임시 파일에서 기존 장치·개별 설정 보존, 백업, 재실행, 잘못된 XML·버전 거부, 경로 대소문자 및 정션 거부 검사를 실행합니다. 실제 환경설정에는 접근하지 않습니다. Windows Actions에서 컴파일·EXE 생성과 등록 도구 검사 7개가 통과했습니다. **실제 Windows Premiere 설정 형식 및 재실행 후 자동 연결은 아직 검증하지 않았습니다.** Windows 검증 시 기존 설정 파일과 백업을 비교하고, 수동 추가 없이 패널에서 마스크 목록을 읽을 수 있는지 확인해야 합니다.

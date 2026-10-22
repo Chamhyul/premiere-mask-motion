@@ -8,7 +8,7 @@ $env:PREMIERE_CPP_SDK = 'C:\SDK\Premiere Pro 26.0 C++ SDK'
 .\Build-Windows.ps1 -Sdk $env:PREMIERE_CPP_SDK
 ```
 
-`dist\Mask-Tracker-Windows-x64-1.0.0-Setup.exe`가 생성됩니다. EXE 하나로 네이티브 모듈을 배치하고, 기존 컨트롤 표면 설정을 유지하며 Mask Tracker를 자동 등록한 다음 Adobe UPIA로 CCX를 설치합니다. 기존 ZIP도 함께 생성합니다. 로컬 개발 폴더 구조에서는 `distribution\dist\`에 생성됩니다. SDK의 Windows Control Surface 확장자는 `.acsrf`입니다. 빌드는 설치·게시를 하지 않습니다.
+`dist\Mask-Tracker-Windows-x64-1.0.1-beta.1-Setup.exe`가 생성됩니다. EXE 하나로 네이티브 모듈을 배치하고, 기존 컨트롤 표면 설정을 유지하며 Mask Tracker를 자동 등록한 다음 Adobe UPIA로 CCX를 설치합니다. 기존 ZIP도 함께 생성합니다. 로컬 개발 폴더 구조에서는 `distribution\dist\`에 생성됩니다. SDK의 Windows Control Surface 확장자는 `.acsrf`입니다. 빌드는 설치·게시를 하지 않습니다.
 
 확인할 항목:
 
@@ -31,3 +31,5 @@ Windows의 실제 Adobe 형식명·데이터 인코딩과 SDK 콜백 동작은 �
 EXE 빌드는 `ISCC.exe`를 PATH 또는 Inno Setup 기본 설치 폴더에서 찾습니다. 다른 경로는 `MASK_TRACKER_ISCC` 환경 변수로 지정합니다.
 
 설치 파일은 일반 더블클릭으로 실행하고 UAC 승인을 합니다. Creative Cloud가 로그인된 사용자로 실행해야 합니다. 처음부터 관리자 권한으로 실행하면 자동 등록이 중단됩니다. Premiere를 한 번도 실행하지 않아 환경설정 폴더가 없으면 한 번 실행·종료한 뒤 설치 파일을 다시 실행합니다. 설치 전 Premiere를 종료해야 하며, CCX 설치가 실패하면 성공으로 처리하지 않습니다. EXE에는 서명이 자동 추가되지 않습니다. 자동 등록은 Windows 실제 환경에서 검증 전이며, 알 수 없는 설정 형식은 수정하지 않고 설치 미완료로 표시합니다. 빌드 시 임시 XML 파일에 대한 등록 도구 검사가 자동 실행됩니다.
+
+GitHub Actions의 **Build Windows installer → Run workflow**로도 EXE를 빌드할 수 있습니다. SDK 헤더는 비공개 Actions 비밀값에서 복원하고 빌드 결과에는 포함하지 않습니다. 등록 도구 검사 7개를 통과한 설치 EXE만 Actions 아티팩트로 제공합니다. 이 작업은 릴리스를 자동 게시하지 않습니다.
