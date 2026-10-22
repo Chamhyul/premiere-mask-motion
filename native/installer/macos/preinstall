@@ -1,0 +1,18 @@
+#!/bin/sh
+set -eu
+fail() { echo "Mask Tracker: $*" >&2; exit 1; }
+[ "${3:-/}" = / ] || fail '시동 디스크에 설치하세요.'
+[ "$(/usr/bin/id -u)" -eq 0 ] || fail '관리자 권한이 필요합니다.'
+uid=$(/usr/bin/stat -f %u /dev/console)
+[ "$uid" -ge 500 ] || fail '설치할 사용자의 macOS 화면에 로그인한 뒤 다시 실행하세요.'
+if /usr/bin/pgrep -f '/Adobe Premiere Pro[^/]*/Adobe Premiere Pro[^/]*\.app/Contents/MacOS/' >/dev/null; then
+    fail 'Premiere를 종료한 뒤 다시 설치하세요.'
+fi
+agent='/Library/Application Support/Adobe/Adobe Desktop Common/RemoteComponents/UPI/UnifiedPluginInstallerAgent/UnifiedPluginInstallerAgent.app/Contents/MacOS/UnifiedPluginInstallerAgent'
+[ -x "$agent" ] || fail 'Creative Cloud Desktop을 설치하고 로그인한 뒤 다시 실행하세요.'
+if [ '@ARCH@' = arm64 ]; then
+    [ "$(/usr/sbin/sysctl -n hw.optional.arm64 2>/dev/null || echo 0)" = 1 ] || fail 'Apple Silicon 맥용 설치 파일입니다.'
+else
+    [ "$(/usr/sbin/sysctl -n hw.optional.arm64 2>/dev/null || echo 0)" != 1 ] || fail 'Intel 맥용 설치 파일입니다. Apple Silicon용 파일을 사용하세요.'
+fi
+exit 0

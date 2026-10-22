@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="style.css"></head>
+<body>
+  <header><div><strong>Mask Tracker</strong><span class="subtitle">클립 단위 추적</span></div><span id="plugin-version" class="version">1.0.0</span></header>
+  <div id="notice-area" aria-live="polite" hidden>
+    <div id="update-notice" hidden><div class="update-row"><span id="update-message"></span><div role="button" tabindex="0" id="update-open" class="button quiet">릴리스 보기 ↗</div></div><p id="update-error" class="message error"></p></div>
+  </div>
+  <main id="content">
+    <section>
+      <div class="heading"><span class="number">1</span><h3>마스크 만들고 추적하기</h3><span class="badge">Premiere에서</span></div>
+      <p class="note">추적할 대상에 오브젝트 마스크를 만들고 추적하세요.</p>
+    </section>
+    <div class="divider"></div>
+    <section>
+      <div class="heading"><span class="number">2</span><h3>마스크 선택하고 분석</h3><span id="source-badge" class="badge">대기</span></div>
+      <div class="action-row"><div class="clip">
+        <div class="source-heading"><strong id="source-name">클립을 선택하세요.</strong>
+        <div class="source-controls"><span id="source-meta"></span><div role="button" tabindex="0" id="read-masks" class="button quiet refresh" aria-label="분석 초기화" title="분석 초기화"><img src="assets/refresh.svg" width="13" height="13" alt="" aria-hidden="true"></div></div></div>
+        <div class="mask-setting"><div role="button" tabindex="0" id="mask-picker" class="button mask-picker" aria-label="추적할 마스크" aria-describedby="mask-picker-label" aria-expanded="false" aria-controls="mask-options" aria-disabled="true" disabled><span id="mask-picker-label">마스크 목록</span><span class="picker-arrow" aria-hidden="true">▾</span></div><div id="mask-options" class="mask-options" hidden></div><select id="mask-choice" hidden aria-disabled="true" disabled><option value="">비디오 클립을 먼저 선택하세요</option></select></div>
+      </div><div role="button" tabindex="0" id="capture" class="button primary" aria-disabled="true" disabled>분석</div></div>
+      <p id="mask-message" class="message" role="status" aria-live="polite"></p>
+      <div id="progress-area" hidden><div class="progress-label"><span id="progress-label">마스크 확인 중</span><span id="percent">0%</span></div><div id="progress" class="progress" role="progressbar" aria-label="분석 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progress-fill"></div></div></div>
+      <p id="source-message" class="message" role="status" aria-live="polite"></p>
+    </section>
+    <div class="divider"></div>
+    <section>
+      <div class="heading"><span class="number">3</span><h3>대상에 적용</h3><span id="target-badge" class="badge">대기</span></div>
+      <div class="action-row"><div class="target"><div class="target-info"><strong id="target-name">분석 후 움직일 클립을 선택하세요.</strong><span id="target-meta"></span></div></div><div role="button" tabindex="0" id="apply" class="button primary" aria-disabled="true" disabled>적용</div></div>
+      <p id="target-message" class="message" role="status" aria-live="polite"></p>
+    </section>
+  </main>
+  <script src="index.js"></script>
+</body></html>

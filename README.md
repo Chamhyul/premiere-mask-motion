@@ -37,3 +37,7 @@ Premiere에서 오브젝트 마스크로 추적한 움직임을 텍스트·이�
 패널에 새 버전 안내가 나타나면 [Releases](https://github.com/Chamhyul/premiere-mask-tracker/releases)에서 새 설치 파일을 받으세요.
 
 오류는 [Issues](https://github.com/Chamhyul/premiere-mask-tracker/issues/new/choose)에 사용 버전과 재현 순서를 알려 주세요.
+
+## 빌드
+
+Windows 빌드는 [빌드 안내](native/windows/README.md)를 참고하세요. Adobe SDK는 별도로 준비해야 합니다.

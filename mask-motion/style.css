@@ -1,0 +1,80 @@
+html { height: 100%; }
+body { font-family: Arial, sans-serif; line-height: 1.5; height: 100%; margin: 0; padding: 0; background: #252525; color: #ededed; font-size: 13px; display: flex; flex-direction: column; overflow: hidden; }
+header { padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #454545; flex-shrink: 0; }
+strong { font-weight: 600; }
+.subtitle { display: block; margin-top: 3px; color: #b5b5b5; font-size: 12px; }
+.version { color: #b5b5b5; font-size: 11px; }
+#notice-area { flex-shrink: 0; background: #202020; }
+#update-notice { padding: 8px 18px; color: #b9d9ff; font-size: 12px; }
+.update-row { display: flex; align-items: center; flex-wrap: wrap; }
+#update-message { flex: 1; margin-right: 12px; line-height: 18px; }
+#update-open { flex-shrink: 0; min-height: 28px; padding: 4px 0; color: #b9d9ff; }
+#content { flex: 1; min-height: 0; overflow-y: auto; padding: 18px; }
+p { line-height: 1.5; }
+.heading { display: flex; align-items: center; margin: 0 0 12px; }
+h3 { flex: 1; margin: 0; font-size: 14px; line-height: 22px; }
+.number { flex-shrink: 0; width: 22px; height: 22px; border-radius: 11px; background: #3a3a3a; text-align: center; line-height: 22px; margin-right: 8px; font-size: 12px; }
+.badge { flex-shrink: 0; margin-left: 8px; white-space: nowrap; color: #b5b5b5; font-size: 12px; }
+.clip, .target { padding: 12px; background: #303030; border-radius: 5px; }
+.action-row { display: flex; align-items: stretch; }
+.action-row .clip, .action-row .target { flex: 1; min-width: 0; margin: 0; }
+.clip strong, .target strong { display: block; overflow-wrap: anywhere; }
+.clip span, .target span { display: block; margin-top: 4px; color: #b5b5b5; font-size: 12px; }
+.note { margin: 0 0 12px; padding: 0; color: #b5b5b5; font-size: 12px; line-height: 18px; }
+.message { margin: 12px 0 0; padding: 0; color: #b5b5b5; font-size: 12px; line-height: 18px; }
+.divider { height: 1px; background: #454545; margin: 22px 0; }
+.target { display: flex; align-items: center; margin: 0; }
+.target-info { flex: 1; min-width: 0; }
+.source-heading { display: flex; align-items: center; margin-bottom: 8px; }
+.source-heading #source-name { flex: 1; min-width: 0; }
+.source-controls { display: flex; align-items: center; flex-shrink: 0; min-height: 18px; margin: 0 0 0 8px; }
+.source-controls #source-meta { margin: 0; flex-shrink: 0; line-height: 18px; }
+#read-masks.refresh { width: 18px; min-width: 18px; min-height: 18px; height: 18px; margin: 0 0 0 4px; padding: 0; align-items: center; justify-content: center; color: #b5b5b5; font-size: 12px; line-height: 18px; }
+#capture, #apply { width: 60px; min-width: 60px; margin-left: 12px; flex-shrink: 0; border-radius: 6px; }
+#change-source { margin-top: 8px; }
+
+.message.error { color: #ff9b94; }
+.message.warning { color: #e9c17a; }
+#mask-message { margin: 8px 0 0; }
+.progress-label { display: flex; justify-content: space-between; margin: 12px 0 6px; font-size: 12px; color: #b5b5b5; }
+.progress { height: 4px; background: #3a3a3a; border-radius: 2px; overflow: hidden; }
+#progress-fill { height: 100%; width: 0; background: #6398ff; }
+.advanced-heading { border-top: 1px solid #454545; padding-top: 12px; margin-top: 22px; }
+#advanced-toggle { background: transparent; border: none; box-shadow: none; color: #b5b5b5; padding-left: 0; padding-right: 0; }
+#advanced { padding-top: 8px; }
+.setting, .tools { display: flex; align-items: center; flex-wrap: wrap; margin: 0 0 12px; }
+.setting label { margin-right: 8px; }
+.setting input { width: 72px; margin-right: 8px; }
+.tools .button { margin: 0 12px 0 0; }
+.mask-setting { position: relative; margin: 0; padding: 0; }
+.mask-setting label { display: block; margin: 0 0 8px; padding: 0; color: #b5b5b5; font-size: 12px; line-height: 18px; }
+.button { box-sizing: border-box; display: flex; align-items: center; justify-content: center; min-height: 36px; margin: 0; padding: 8px 14px; border: 1px solid #888; border-radius: 18px; background: transparent; color: #ededed; font-family: Arial, sans-serif; font-size: 12px; font-weight: 600; line-height: 18px; text-align: center; cursor: pointer; }
+.button:hover { background: #3a3a3a; }
+.button:focus { outline: 2px solid #8ab4ff; outline-offset: 2px; }
+.button.primary { background: #3378e0; border-color: #3378e0; color: #fff; }
+.button.primary:hover { background: #4387ef; }
+.button[aria-disabled="true"] { background: #3a3a3a; border-color: #454545; color: #858585; cursor: default; }
+.button.quiet { min-height: 30px; padding: 6px 0; border: none; border-radius: 0; font-weight: 400; text-align: left; justify-content: flex-start; }
+.button.quiet:hover { background: transparent; color: #fff; }
+.button.quiet[aria-disabled="true"] { background: transparent; color: #858585; }
+.button.mask-picker { display: flex; width: 100%; min-height: 36px; justify-content: flex-start; padding: 8px 12px; border: 1px solid #666; border-radius: 4px; background: #303030; font-size: 12px; font-weight: 400; text-align: left; }
+.mask-options { position: absolute; top: 100%; left: 0; right: 0; z-index: 10; margin-top: 0; padding: 4px; border: 1px solid #666; border-top-width: 0; border-color: #666; border-radius: 0 0 4px 4px; background: #303030; max-height: 180px; overflow-y: auto; }
+.mask-options .button { display: flex; width: 100%; justify-content: flex-start; min-height: 34px; padding: 8px; border: none; border-radius: 3px; font-weight: 400; text-align: left; }
+.mask-options .button.chosen { background: #3c4f6a; }
+.mask-options .button[aria-disabled="true"] { background: transparent; }
+.clip span:empty, .target span:empty, .message:empty { display: none; }
+.setting input { box-sizing: border-box; min-height: 30px; padding: 4px 8px; border: 1px solid #666; border-radius: 4px; background: #303030; color: #ededed; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 240px; overflow: auto; padding: 10px; background: #202020; font-size: 11px; }
+[hidden] { display: none; }
+
+.button[aria-disabled="true"] { pointer-events: none; }
+
+.clip #mask-picker-label { flex: 1; min-width: 0; margin: 0; color: inherit; overflow-wrap: anywhere; }
+.clip .picker-arrow { flex-shrink: 0; margin: 0 0 0 8px; color: inherit; }
+
+#read-masks img { display: block; width: 13px; height: 13px; margin: 0; flex-shrink: 0; }
+#read-masks[aria-disabled="true"] img { opacity: 0.5; }
+
+.button.mask-picker[aria-expanded="true"] { border-radius: 4px 4px 0 0; outline: none; }
