@@ -1,6 +1,6 @@
 {
   "name": "premiere-mask-tracker",
-  "version": "1.0.0",
+  "version": "1.0.1-beta.1",
   "private": true,
   "scripts": {
     "check": "node --check updates.js && node --check project-access.js && node --check live-mask.js && node --check index.js && node --check host.js && node --check core.js && node --check deflate.js && node --check prmf.js && node --check edge-motion.js && node --check project-mask.js && node --check mask-source.js && node --check scripts/build-release.js",

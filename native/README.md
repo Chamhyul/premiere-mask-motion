@@ -14,7 +14,7 @@ python3 native/build-macos.py --sdk "/path/to/Premiere Pro 26.0 C++ SDK"
 
 IPC는 현재 사용자만 접근 가능한 임시 폴더에서 요청 ID·세션·유효 시간을 검증합니다. 네이티브 모듈이 없거나 복사가 실패하면 저장된 프로젝트로 대체하지 않습니다. 분석은 목록을 읽었을 때 확보한 마스크 메타데이터와 해당 PRMF 파일을 사용합니다.
 
-`clipboard-state-test.mm`은 macOS 임시 pasteboard에서 텍스트, 바이너리, 여러 항목, 빈 상태 복원 및 다른 복사와의 충돌을 검사합니다. Windows 구현은 텍스트·등록 형식과 GDI 객체를 복제하고 복원을 검증합니다. 보존할 수 없는 형식은 복사 전에 거부합니다. Windows 실제 빌드·호스트 검증과 배포용 서명은 아직 진행하지 않았습니다.
+`clipboard-state-test.mm`은 macOS 임시 pasteboard에서 텍스트, 바이너리, 여러 항목, 빈 상태 복원 및 다른 복사와의 충돌을 검사합니다. Windows 구현은 텍스트·등록 형식과 GDI 객체를 복제하고 복원을 검증합니다. 보존할 수 없는 형식은 복사 전에 거부합니다. Windows 실제 빌드와 호스트에서의 마스크 목록 읽기·클립보드 복원은 확인했으며, 검증 범위와 재현 방법은 [Windows 안내](windows/README.md)를 참고하세요. 배포용 Windows 서명은 아직 진행하지 않았습니다.
 
 ## 통합 설치 파일 빌드
 

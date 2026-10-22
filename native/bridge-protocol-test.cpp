@@ -11,9 +11,9 @@ int main(){
  rejects([&]{request(json,"request-abc-123.json","other",1000);});
  rejects([&]{request(json,"request-abc-123.json","s",2001);});
  rejects([&]{Parser(R"({"id":"a","id":"b"})").object();});
- rejects([&]{Parser(R"({"a":"\ud800"})").object();});
+ rejects([&]{Parser("{\"a\":\"\\ud800\"}").object();});
  rejects([&]{Parser(R"({"a":01})").object();});
- assert(Parser(R"({"a":"\ud83d\ude00"})").object()["a"].text=="\xf0\x9f\x98\x80");
+ assert(Parser("{\"a\":\"\\ud83d\\ude00\"}").object()["a"].text=="\xf0\x9f\x98\x80");
  assert(quote("a\n\"b")=="\"a\\u000a\\\"b\"");
  std::string xml="<PremiereData Version=\"1\"><VideoClipTrackItem/></PremiereData>";
  assert(clipboardXML(bytes(xml))==xml);

@@ -1,5 +1,5 @@
 "use strict";
-const CURRENT_VERSION = "1.0.0";
+const CURRENT_VERSION = "1.0.1-beta.1";
 const REPOSITORY = "Chamhyul/premiere-mask-tracker";
 const RELEASES_URL = "https://github.com/" + REPOSITORY + "/releases";
 const API_URL = "https://api.github.com/repos/" + REPOSITORY + "/releases?per_page=100";
