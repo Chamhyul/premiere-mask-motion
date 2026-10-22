@@ -218,12 +218,12 @@ int wmain(int argc, wchar_t** argv) {
     if (FAILED(initialized)) return 1;
     int result = 0;
     try {
-        CheckUser(); Require(!Running(), "Quit Premiere before registering");
+        Require(!Running(), "Quit Premiere before registering");
         fs::path module = KnownFolder(FOLDERID_ProgramFilesX64) / L"Adobe/Common/Plug-ins/ControlSurface/MaskTrackerClipboard.acsrf";
         std::set<fs::path> paths;
-        if ((argc == 3 || argc == 5) && std::wstring(argv[1]) == L"--settings-file") {
+        if ((argc == 3 || argc == 5 || argc == 6) && std::wstring(argv[1]) == L"--settings-file") {
             paths.insert(fs::path(argv[2]));
-            if (argc == 5) {
+            if (argc >= 5) {
                 Require(std::wstring(argv[3]) == L"--module-path", "Invalid arguments");
                 module = fs::path(argv[4]); Require(module.is_absolute(), "Absolute module path required");
             }
@@ -236,6 +236,21 @@ int wmain(int argc, wchar_t** argv) {
                     paths.insert(entry.path() / L"ControlSurface/ControlSurfaceSettings.xml");
             Require(!paths.empty(), "Launch Premiere once, quit it, then run this installer again");
         } else throw std::runtime_error("Invalid arguments");
+        // Hosted Windows runners are elevated. Permit this only for explicit,
+        // temporary fixture files; the normal installer always requires a user token.
+        if (argc == 6 && std::wstring(argv[5]) == L"--fixture-test") {
+            wchar_t temp[MAX_PATH + 1]{};
+            Require(GetTempPathW(MAX_PATH, temp) > 0, "Cannot locate fixture temp root");
+            const auto base = fs::weakly_canonical(fs::path(temp)).wstring() + L"\\";
+            const auto target = fs::weakly_canonical(*paths.begin()).wstring();
+            Require(target.size() > base.size() && _wcsnicmp(target.c_str(), base.c_str(), base.size()) == 0,
+                    "Fixture settings must be under the current temporary directory");
+            Require(fs::weakly_canonical(module.parent_path()) == fs::weakly_canonical(paths.begin()->parent_path().parent_path()),
+                    "Fixture module must be beside the temporary settings folder");
+            SafePath(module);
+        } else {
+            Require(argc != 6, "Invalid arguments"); CheckUser();
+        }
         Require(fs::is_regular_file(module), "Installed MaskTrackerClipboard.acsrf is missing");
         for (const auto& path : paths) std::wcout << Register(path, module) << L"\t" << path.wstring() << L"\n";
     } catch (const std::exception& error) {

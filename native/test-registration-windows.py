@@ -25,7 +25,7 @@ class WindowsRegistrationTests(unittest.TestCase):
         self.module.write_bytes(b'fixture module only')
 
     def run_helper(self):
-        return subprocess.run([HELPER, '--settings-file', str(self.file), '--module-path', str(self.module)],
+        return subprocess.run([HELPER, '--settings-file', str(self.file), '--module-path', str(self.module), '--fixture-test'],
                               capture_output=True)
 
     def unrelated(self, root):

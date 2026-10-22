@@ -1,0 +1,59 @@
+name: Build Windows installer
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prepare private Adobe SDK headers
+        shell: pwsh
+        env:
+          SDK_PART_1: ${{ secrets.PREMIERE_SDK_HEADERS_1 }}
+          SDK_PART_2: ${{ secrets.PREMIERE_SDK_HEADERS_2 }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $archive = Join-Path $env:RUNNER_TEMP 'premiere-sdk.zip'
+          [IO.File]::WriteAllBytes($archive, [Convert]::FromBase64String($env:SDK_PART_1 + $env:SDK_PART_2))
+          if ((Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne '50ec15528e119cf4f22a08d038be85c4baa4b9469418b652dab21ed9b6b0b152') { throw 'SDK integrity check failed' }
+          $sdk = Join-Path $env:RUNNER_TEMP 'premiere-sdk'
+          Expand-Archive -LiteralPath $archive -DestinationPath $sdk
+          Remove-Item -LiteralPath $archive
+          "PREMIERE_CPP_SDK=$sdk" >> $env:GITHUB_ENV
+      - name: Prepare MSVC and Inno Setup
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vs = & $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          if (-not $vs) { throw 'MSVC not found' }
+          & "$vs\Common7\Tools\Launch-VsDevShell.ps1" -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
+          foreach ($name in @('PATH','INCLUDE','LIB','LIBPATH','WindowsSdkDir','WindowsSDKVersion','VCToolsInstallDir','VCINSTALLDIR','VSINSTALLDIR','VSCMD_ARG_TGT_ARCH','VSCMD_ARG_HOST_ARCH')) {
+            $value = [Environment]::GetEnvironmentVariable($name)
+            if ($value) { "$name=$value" >> $env:GITHUB_ENV }
+          }
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            choco install innosetup --no-progress -y
+            if ($LASTEXITCODE -ne 0) { throw 'Inno Setup installation failed' }
+          }
+          "MASK_TRACKER_ISCC=$iscc" >> $env:GITHUB_ENV
+      - name: Build and test
+        shell: pwsh
+        run: .\Build-Windows.ps1 -Sdk $env:PREMIERE_CPP_SDK
+      - name: Upload installer only
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mask-Tracker-Windows-x64
+          path: dist/Mask-Tracker-Windows-x64-*-Setup.exe
+          if-no-files-found: error
+          retention-days: 7
