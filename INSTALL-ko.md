@@ -5,8 +5,8 @@
 
    | 환경 | 설치 파일 |
    | --- | --- |
-   | macOS · Apple Silicon | `Mask-Tracker-macOS-arm64-1.0.1-beta.1.pkg` |
-   | Windows · x64 | `Mask-Tracker-Windows-x64-1.0.1-beta.1-Setup.exe` |
+   | macOS · Apple Silicon | `Mask-Tracker-macOS-arm64-1.0.1-beta.2.pkg` |
+   | Windows · x64 | `Mask-Tracker-Windows-x64-1.0.1-beta.2-Setup.exe` |
 
 3. **창 → UXP 플러그인 → Mask Tracker**를 엽니다.
 

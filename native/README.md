@@ -14,11 +14,11 @@ python3 native/build-macos.py --sdk "/path/to/Premiere Pro 26.0 C++ SDK"
 
 IPC는 현재 사용자만 접근 가능한 임시 폴더에서 요청 ID·세션·유효 시간을 검증합니다. 네이티브 모듈이 없거나 복사가 실패하면 저장된 프로젝트로 대체하지 않습니다. 분석은 목록을 읽었을 때 확보한 마스크 메타데이터와 해당 PRMF 파일을 사용합니다.
 
-`clipboard-state-test.mm`은 macOS 임시 pasteboard에서 텍스트, 바이너리, 여러 항목, 빈 상태 복원 및 다른 복사와의 충돌을 검사합니다. Windows 구현은 텍스트·등록 형식과 GDI 객체를 복제하고 복원을 검증합니다. 보존할 수 없는 형식은 복사 전에 거부합니다. Windows 실제 빌드·호스트 검증과 배포용 서명은 아직 진행하지 않았습니다.
+`clipboard-state-test.mm`은 macOS 임시 pasteboard에서 텍스트, 바이너리, 여러 항목, 빈 상태 복원 및 다른 복사와의 충돌을 검사합니다. Windows 구현은 텍스트·등록 형식과 GDI 객체를 복제하고 복원을 검증합니다. 보존할 수 없는 형식은 복사 전에 거부합니다. Windows 빌드는 Actions에서 검증했으며, 실제 호스트 검증과 배포용 서명은 별도입니다.
 
 ## 통합 설치 파일 빌드
 
-`mask-motion/`에서 `npm run build`를 실행하면 macOS는 `.pkg`, Windows x64는 `-Setup.exe`가 기존 CCX·ZIP과 함께 생성됩니다. 설치하거나 게시하지 않습니다. Windows는 MSVC·Windows SDK 외에 Inno Setup 6.3 이상이 필요합니다.
+`mask-motion/`에서 `npm run build`를 실행하면 macOS는 `.pkg`, Windows x64는 `-Setup.exe`가 생성됩니다. 설치하거나 게시하지 않습니다. Windows는 MSVC·Windows SDK 외에 Inno Setup 6.3 이상이 필요합니다.
 
 두 설치 파일은 Premiere 종료와 Adobe UPIA 존재 여부를 확인하고 네이티브 모듈을 배치한 다음, 로그인한 사용자의 Adobe 계정으로 CCX 설치를 실행합니다. CCX 설치 실패는 설치 미완료로 처리합니다. 이때 이미 배치된 네이티브 파일은 남을 수 있으므로 원인을 해결한 뒤 같은 설치 파일을 다시 실행합니다. macOS PKG와 Windows EXE는 로그인한 사용자의 컨트롤 표면 설정에 Mask Tracker를 자동 등록합니다. 기존 장치·설정은 유지하며 수정 전 백업을 남깁니다. Premiere 실행 중, 손상된 설정 또는 심볼릭 링크 경로는 변경하지 않습니다. Windows는 일반 실행으로 설치를 시작해야 합니다. 직접 관리자 권한으로 실행한 경우에는 다른 계정의 설정을 수정하지 않고 등록을 중단합니다. Premiere 환경설정 폴더가 없으면 Premiere를 한 번 실행·종료한 뒤 재설치합니다.
 
@@ -32,3 +32,5 @@ macOS 자동 등록 검증은 `MASK_TRACKER_REGISTRATION_HELPER=/path/to/MaskTra
 Windows 자동 등록은 `windows/MaskTrackerRegister.cpp`를 별도 EXE로 빌드해 `ExecAsOriginalUser`로 실행합니다. 현재 macOS에서 확인한 `prop.map version="4"` 구조를 엄격하게 검사하고, 다른 형식은 변경하지 않습니다. 기존 파일은 백업 후 `ReplaceFileW`로 교체하며 기존 ACL을 유지합니다. 재실행해도 활성 항목을 중복 추가하지 않습니다. 등록 실패 시 CCX 설치로 진행하지 않고 설치 미완료로 표시합니다.
 
 `build-windows.py`는 등록 도구 빌드 후 임시 파일에서 기존 장치·개별 설정 보존, 백업, 재실행, 잘못된 XML·버전 거부, 경로 대소문자 및 정션 거부 검사를 실행합니다. 실제 환경설정에는 접근하지 않습니다. Windows Actions에서 컴파일·EXE 생성과 등록 도구 검사 7개가 통과했습니다. **실제 Windows Premiere 설정 형식 및 재실행 후 자동 연결은 아직 검증하지 않았습니다.** Windows 검증 시 기존 설정 파일과 백업을 비교하고, 수동 추가 없이 패널에서 마스크 목록을 읽을 수 있는지 확인해야 합니다.
+
+macOS 클립보드 백업은 빈 상태와 조회 실패를 구분하고 최대 3회 재시도합니다. 백업 중 변경되면 최신 내용으로 다시 백업하며, 복원 중 발생한 새 복사는 덮어쓰지 않습니다. 별도 pasteboard 보존 검사 14개가 통과했고, 실제 Premiere에서 단일·다중 마스크 목록 조회 전후 기존 클립보드의 모든 항목·형식·바이트가 일치함을 확인했습니다.

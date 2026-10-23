@@ -46,59 +46,10 @@ static void ready() {
   writeJSON(@"ready.json",@{@"protocol":@1,@"session":session,@"pid":@(getpid()),@"copyAvailable":@(copyAvailable),@"updatedAt":@((long long)(NSDate.date.timeIntervalSince1970*1000))});
 }
 
-// Materialize every item and type before copying. Never put the user's previous
-// clipboard bytes in IPC files, logs, or the returned XML.
-static NSArray *snapshotClipboard(NSPasteboard *pb) {
-  NSMutableArray *items=[NSMutableArray new];NSUInteger total=0;
-  for(NSPasteboardItem *item in pb.pasteboardItems) {
-    NSMutableArray *types=[NSMutableArray new];
-    for(NSPasteboardType type in item.types) {
-      NSData *data=[item dataForType:type];
-      if(!data || data.length>256*1024*1024 || total>256*1024*1024-data.length)return nil;
-      total+=data.length;
-      [types addObject:@{@"type":type,@"data":[data copy]}];
-    }
-    [items addObject:types];
-  }
-  return items;
-}
-static BOOL clipboardEquals(NSPasteboard *pb,NSArray *snapshot) {
-  NSArray *items=pb.pasteboardItems?:@[];
-  if(items.count!=snapshot.count)return NO;
-  for(NSUInteger i=0;i<items.count;i++) {
-    NSPasteboardItem *item=items[i];NSArray *types=snapshot[i];
-    if(item.types.count!=types.count)return NO;
-    for(NSDictionary *entry in types) {
-      if(![item.types containsObject:entry[@"type"]] || ![[item dataForType:entry[@"type"]] isEqualToData:entry[@"data"]])return NO;
-    }
-  }
-  return YES;
-}
-static BOOL restoreClipboard(NSPasteboard *pb,NSArray *snapshot,NSInteger ownedCount) {
-  // Another application copied something during our transaction: preserve that
-  // newer clipboard instead of overwriting it with the earlier snapshot.
-  if(pb.changeCount!=ownedCount)return NO;
-  if(clipboardEquals(pb,snapshot))return YES;
-  NSMutableArray *items=[NSMutableArray new];
-  for(NSArray *types in snapshot) {
-    NSPasteboardItem *item=[NSPasteboardItem new];
-    for(NSDictionary *entry in types)if(![item setData:entry[@"data"] forType:entry[@"type"]])return NO;
-    [items addObject:item];
-  }
-  [pb clearContents];
-  if(items.count && ![pb writeObjects:items])return NO;
-  return clipboardEquals(pb,snapshot);
-}
-static void copySelection(NSDictionary *request) {
-  inFlight=true;
-  NSPasteboard *pb=NSPasteboard.generalPasteboard;
-  NSInteger before=pb.changeCount;
-  NSArray *snapshot=snapshotClipboard(pb);
+#include "clipboard-state.hpp"
+
+static void copySelectionWithBackup(NSDictionary *request,NSPasteboard *pb,NSArray *snapshot,NSInteger before) {
   NSString *resultName=[NSString stringWithFormat:@"result-%@.json",request[@"id"]];
-  if(!snapshot || pb.changeCount!=before) {
-    writeJSON(resultName,@{@"id":request[@"id"],@"session":session,@"ok":@NO,@"clipboardRestored":@YES,@"clipboardVerified":@YES,@"message":@"클립보드를 보존할 수 없어 마스크 읽기를 중단했습니다. 클립을 다시 선택하세요."});
-    inFlight=false;return;
-  }
   SPErr error=kSPUnimplementedError;
   @try {error=commands->ExecuteCommand(commandRef,&copyContext,&copyID);}
   @catch(NSException *) {error=kSPUnimplementedError;}
@@ -138,6 +89,26 @@ static void copySelection(NSDictionary *request) {
     inFlight=false;finish=nil;
   }};
   finish();
+}
+static void copySelection(NSDictionary *request) {
+  inFlight=true;
+  NSPasteboard *pb=NSPasteboard.generalPasteboard;
+  snapshotClipboardWithRetry(pb,^(ClipboardSnapshot snapshot) {
+    if(snapshot.status==ClipboardSnapshotStatus::Ready && [request[@"deadline"] doubleValue]>=NSDate.date.timeIntervalSince1970*1000) {
+      copySelectionWithBackup(request,pb,snapshot.items,snapshot.generation);return;
+    }
+    NSString *message=@"클립보드를 읽지 못했습니다. 잠시 후 클립을 다시 선택하세요.";
+    switch(snapshot.status) {
+      case ClipboardSnapshotStatus::AccessDenied:message=@"macOS 설정에서 Premiere의 클립보드 접근을 허용한 뒤 다시 선택하세요.";break;
+      case ClipboardSnapshotStatus::TooLarge:message=@"클립보드 데이터가 너무 커서 보존하지 못했습니다. 다른 내용을 복사한 뒤 다시 선택하세요.";break;
+      case ClipboardSnapshotStatus::Changed:message=@"클립보드가 계속 변경되고 있습니다. 복사가 끝난 뒤 클립을 다시 선택하세요.";break;
+      default:break;
+    }
+    // No copy command was issued; the user's clipboard has not been modified.
+    // Do not claim its contents were verified when the snapshot failed.
+    writeJSON([NSString stringWithFormat:@"result-%@.json",request[@"id"]],@{@"id":request[@"id"],@"session":session,@"ok":@NO,@"clipboardRestored":@YES,@"clipboardVerified":@NO,@"message":message});
+    inFlight=false;
+  });
 }
 static void poll() { @autoreleasepool {
   NSTimeInterval now=NSDate.date.timeIntervalSince1970;

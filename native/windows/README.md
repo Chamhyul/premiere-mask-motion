@@ -8,7 +8,7 @@ $env:PREMIERE_CPP_SDK = 'C:\SDK\Premiere Pro 26.0 C++ SDK'
 .\Build-Windows.ps1 -Sdk $env:PREMIERE_CPP_SDK
 ```
 
-`dist\Mask-Tracker-Windows-x64-1.0.1-beta.1-Setup.exe`가 생성됩니다. EXE 하나로 네이티브 모듈을 배치하고, 기존 컨트롤 표면 설정을 유지하며 Mask Tracker를 자동 등록한 다음 Adobe UPIA로 CCX를 설치합니다. 기존 ZIP도 함께 생성합니다. 로컬 개발 폴더 구조에서는 `distribution\dist\`에 생성됩니다. SDK의 Windows Control Surface 확장자는 `.acsrf`입니다. 빌드는 설치·게시를 하지 않습니다.
+`dist\Mask-Tracker-Windows-x64-1.0.1-beta.2-Setup.exe`가 생성됩니다. EXE 하나로 네이티브 모듈을 배치하고, 기존 컨트롤 표면 설정을 유지하며 Mask Tracker를 자동 등록한 다음 Adobe UPIA로 CCX를 설치합니다. 로컬 개발 폴더 구조에서는 `distribution\dist\`에 생성됩니다. SDK의 Windows Control Surface 확장자는 `.acsrf`입니다. 빌드는 설치·게시를 하지 않습니다.
 
 확인할 항목:
 

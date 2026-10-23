@@ -33,23 +33,16 @@ for (const name of names) {
 const directory = Buffer.concat(central), end = Buffer.alloc(22); end.writeUInt32LE(0x06054b50, 0); end.writeUInt16LE(names.length, 8); end.writeUInt16LE(names.length, 10); end.writeUInt32LE(directory.length, 12); end.writeUInt32LE(offset, 16);
 fs.mkdirSync(dist, { recursive: true });
 const asset = "Mask-Tracker-" + CURRENT_VERSION + ".ccx";
-fs.writeFileSync(path.join(dist, asset), Buffer.concat([...local, directory, end]));
-fs.copyFileSync(path.join(docs, windows ? "INSTALL-windows-ko.md" : "INSTALL-ko.md"), path.join(dist, "INSTALL-ko.md"));
-fs.copyFileSync(path.join(docs, "README.md"), path.join(dist, "README.md"));
-const nativeArchive = "Mask-Tracker-" + (windows ? "Windows" : "macOS") + "-" + process.arch + "-" + CURRENT_VERSION + ".zip";
 const installer = "Mask-Tracker-" + (windows ? "Windows-x64-" + CURRENT_VERSION + "-Setup.exe" : "macOS-" + process.arch + "-" + CURRENT_VERSION + ".pkg");
 const stage = fs.mkdtempSync(path.join(os.tmpdir(), "mask-tracker-package-"));
 try {
+  fs.writeFileSync(path.join(stage, asset), Buffer.concat([...local, directory, end]));
   const sdk = process.env.PREMIERE_CPP_SDK || path.resolve(root, "../../local_sdk/Premiere Pro 26.0 C++ SDK");
   const python = process.env.MASK_TRACKER_PYTHON || (windows ? "python" : "python3");
   execFileSync(python, [path.resolve(root, windows ? "../native/build-windows.py" : "../native/build-macos.py"), "--sdk", sdk, "--output", stage,
     ...(windows ? [] : ["--arch", process.arch === "x64" ? "x86_64" : "arm64"])], { stdio: "inherit" });
-  for (const name of [asset, "INSTALL-ko.md", "README.md"]) fs.copyFileSync(path.join(dist, name), path.join(stage, name));
   execFileSync(python, [path.resolve(root, "../native/build-installer.py"), "--stage", stage,
     "--output", dist, "--version", CURRENT_VERSION, "--platform", windows ? "windows" : "macos", "--arch", process.arch], { stdio: "inherit" });
-  if (windows) execFileSync(python, [path.resolve(root, "../native/package-windows.py"), stage, path.join(dist, nativeArchive)]);
-  else execFileSync("/usr/bin/ditto", ["-c", "-k", "--sequesterRsrc", stage, path.join(dist, nativeArchive)]);
 } finally { fs.rmSync(stage, { recursive: true, force: true }); }
-const sums = [asset, nativeArchive, installer, "INSTALL-ko.md", "README.md"].map(name => crypto.createHash("sha256").update(fs.readFileSync(path.join(dist, name))).digest("hex") + "  " + name).join("\n") + "\n";
-fs.writeFileSync(path.join(dist, "SHA256SUMS.txt"), sums);
-console.log(JSON.stringify({ version: CURRENT_VERSION, asset: path.join(dist, asset), nativePackage: path.join(dist, nativeArchive), installer: path.join(dist, installer), runtimeFiles: names.length, sha256: sums.split("\n")[0] }, null, 2));
+const sha256 = crypto.createHash("sha256").update(fs.readFileSync(path.join(dist, installer))).digest("hex");
+console.log(JSON.stringify({ version: CURRENT_VERSION, installer: path.join(dist, installer), runtimeFiles: names.length, sha256 }, null, 2));
